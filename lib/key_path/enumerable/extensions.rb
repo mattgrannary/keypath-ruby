@@ -28,27 +28,30 @@ module Enumerable
     return self if keypath_parts.empty?
 
     key = keypath_parts.shift
+    # Coerce key to Int for Arrays and symbols for Hashes
+    key = key.is_number? ? Integer(key) : key.to_sym
+
     # Just assign value to self when it's a direct path
     # Remember, this is after calling keypath_parts#shift
     if keypath_parts.length == 0
-      key = key.is_number? ? Integer(key) : key.to_sym
-
       self[key] = value
       return self
     end
 
     # keypath_parts.length > 0
+    # Check what the next key's type is and create either
+    # a new Hash or Array unless there is already one
+    # defined.
     # Remember, this is after calling keypath_parts#shift
-    collection = if key.is_number?
+    self[key] ||= if keypath_parts[0].is_number?
       Array.new
     else
       Hash.new
     end
 
     # Remember, this is after calling keypath_parts#shift
-    collection.set_keypath(keypath_parts.join('.'), value)
+    self[key].set_keypath(keypath_parts.join('.'), value)
 
-    # merge the new collection into self
-    self[key] = collection
+    self
   end
 end
